@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: black;
+}
+
+@keyframes scanline-drift {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.97;
+  }
+  5% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 0.98;
+  }
+  15% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0.96;
+  }
+  50% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.99;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes channel-spin {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+.animate-in {
+  animation: channel-spin 0.3s ease-out;
+}
+
+@keyframes guide-up {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-guide-up {
+  animation: guide-up 0.25s ease-out;
+}
+
+.tv-flicker {
+  animation: flicker 0.15s infinite;
+}
+
+.tv-flicker::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 15;
+  animation: scanline-drift 0.1s linear infinite;
+}
+
+video::-webkit-media-controls {
+  display: none !important;
+}

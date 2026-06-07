@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Video {
+  id        String   @id @default(cuid())
+  redditId  String   @unique
+  title     String
+  subreddit String
+  videoUrl  String
+  hlsUrl    String?
+  thumbnail String?
+  duration  Int?
+  width     Int?
+  height    Int?
+  author    String   @default("")
+  permalink String   @default("")
+  score     Int      @default(0)
+  isGif     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
