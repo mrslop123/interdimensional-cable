@@ -360,6 +360,25 @@ export default function TvScreen() {
   }, []);
 
   useEffect(() => {
+    if (!launched || !currentProgram) return;
+    playProgram(currentProgram);
+  }, [launched]);
+
+  useEffect(() => {
+    if (launched || !loaded) return;
+    const handleLaunch = (e: KeyboardEvent | MouseEvent) => {
+      e.preventDefault();
+      setLaunched(true);
+    };
+    window.addEventListener("keydown", handleLaunch);
+    window.addEventListener("click", handleLaunch);
+    return () => {
+      window.removeEventListener("keydown", handleLaunch);
+      window.removeEventListener("click", handleLaunch);
+    };
+  }, [launched, loaded]);
+
+  useEffect(() => {
     if (!volumeMountedRef.current) {
       volumeMountedRef.current = true;
       return;
