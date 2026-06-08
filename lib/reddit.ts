@@ -131,7 +131,7 @@ export async function fetchSubredditTopPosts(
 
   try {
     const token = await getAccessToken();
-    const url = `https://oauth.reddit.com/r/${subreddit}/top.json?t=year&limit=${limit}&raw_json=1`;
+    const url = `https://oauth.reddit.com/r/${subreddit}/top.json?t=all&limit=${limit}&raw_json=1`;
 
     const res = await fetch(url, {
       headers: {
@@ -153,6 +153,7 @@ export async function fetchSubredditTopPosts(
       const d = child.data;
       if (d.over_18) continue;
       if (/chatgpt/i.test(d.title)) continue;
+      if (/epstein|maxwell/i.test(d.title)) continue;
 
       const videoUrl = extractVideoUrl(d);
       if (!videoUrl) continue;

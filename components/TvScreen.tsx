@@ -8,6 +8,7 @@ import VhsTexture from "./VhsTexture";
 import ChannelOverlay from "./ChannelOverlay";
 import TvGuide from "./TvGuide";
 import RemoteControl from "./RemoteControl";
+import Header from "./Header";
 import {
   type VideoEntry,
   type ScheduleResult,
@@ -67,7 +68,7 @@ export default function TvScreen() {
       const schedules = new Map<number, ScheduleResult>();
       for (let i = 0; i < NUM_CHANNELS; i++) {
         const sub = SUBREDDITS[i];
-        const channelVids = i === 0 ? vids.filter((v) => v.isBest) : vids.filter((v) => v.subreddit.toLowerCase() === sub.toLowerCase());
+        const channelVids = i === NUM_CHANNELS - 1 ? vids.filter((v) => v.isBest) : vids.filter((v) => v.subreddit.toLowerCase() === sub.toLowerCase());
         schedules.set(i, buildSchedule(channelVids, i, date));
       }
       return { schedules, dateStr };
@@ -283,14 +284,6 @@ export default function TvScreen() {
 
         if (program) {
           initializedRef.current = true;
-          staticStartTimeRef.current = Date.now();
-          setStaticActive(true);
-          playProgram(program);
-
-          if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
-          safetyTimerRef.current = setTimeout(() => {
-            setStaticActive(false);
-          }, STATIC_SAFETY);
         }
       })
       .catch(() => {
@@ -361,7 +354,14 @@ export default function TvScreen() {
 
   useEffect(() => {
     if (!launched || !currentProgram) return;
+    staticStartTimeRef.current = Date.now();
+    setStaticActive(true);
     playProgram(currentProgram);
+
+    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
+    safetyTimerRef.current = setTimeout(() => {
+      setStaticActive(false);
+    }, STATIC_SAFETY);
   }, [launched]);
 
   useEffect(() => {
@@ -407,49 +407,13 @@ export default function TvScreen() {
     );
   }
 
-  if (!launched) {
-    return (
-      <div className="w-full h-screen bg-black flex flex-col items-center justify-center gap-8 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ background: `url('${withBase("/bg2.png")}') center/cover no-repeat` }} />
-        <div className="relative z-10 flex flex-col items-center gap-6 max-w-md px-6 text-center">
-          <div className="text-green-500/60 font-mono text-xs tracking-[0.3em] animate-pulse">
-            ● BROADCAST INITIALIZING ●
-          </div>
-          <h1 className="text-green-400 text-3xl font-mono tracking-wide leading-tight">
-            INTERDIMENSIONAL<br />CABLE
-          </h1>
-          <div className="h-px w-32 bg-green-800/50" />
-          <p className="text-green-300/70 font-mono text-sm leading-relaxed">
-            You have tuned into a television signal from an adjacent dimension. Our
-            programming consists entirely of AI-generated videos scraped from
-            Reddit. We are not responsible for any existential dread, temporal
-            displacement, or spontaneous third-eye activation.
-          </p>
-          <div className="text-green-500/40 font-mono text-xs leading-relaxed">
-            No subscription required. No refunds possible.<br />
-            The signal finds <em>you</em>.
-          </div>
-          <button
-            onClick={() => setLaunched(true)}
-            className="mt-4 px-8 py-3 bg-green-900/40 border border-green-500/50 text-green-400 font-mono text-lg tracking-widest hover:bg-green-800/50 hover:border-green-400/70 active:scale-95 transition-all rounded cursor-pointer"
-          >
-            ▶ START BROADCAST
-          </button>
-          <div className="text-green-600/30 font-mono text-[10px] tracking-wider">
-            PRESS ANY KEY OR CLICK
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const program = currentProgram;
 
   const guideChannels = Array.from({ length: NUM_CHANNELS }, (_, i) => {
     const s = channelSchedules.get(i);
     return {
       num: i + 1,
-      subreddit: SUBREDDITS[i],
+      subreddit: i === NUM_CHANNELS - 1 ? "Best Of" : SUBREDDITS[i],
       timeline: s?.timeline ?? [],
       totalDuration: s?.totalDuration ?? 0,
     };
@@ -458,130 +422,172 @@ export default function TvScreen() {
   return (
     <div
       style={{ background: `url('${withBase("/bg2.png")}') center/cover no-repeat` }}
-      className="min-h-screen flex flex-col items-center justify-center p-8 font-sans relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-start font-sans relative overflow-hidden"
     >
-      {/* Outer wrapper: in fullscreen becomes fixed, otherwise flex layout */}
-      <div
-        className={fullscreen ? "fixed inset-0 z-50" : "flex-1 w-full max-w-4xl flex justify-center z-10"}
-      >
+      {!fullscreen && (
+        <>
+          <div className="h-[4vh]" />
+          <Header />
+        </>
+      )}
+
+      <div className="flex-1 flex flex-col items-center justify-center w-full p-8">
+        {/* Outer wrapper: in fullscreen becomes fixed, otherwise flex layout */}
         <div
-          className={
-            fullscreen
-              ? "relative w-full h-full"
-              : "relative w-full max-w-[900px] flex items-center justify-center"
-          }
+          className={fullscreen ? "fixed inset-0 z-50" : "w-full max-w-4xl flex justify-center z-10"}
         >
           <div
-            className={fullscreen ? "w-full h-full" : "relative w-full"}
-            style={fullscreen ? {} : { aspectRatio: "1379/985" }}
+            className={
+              fullscreen
+                ? "relative w-full h-full"
+                : "relative w-full max-w-[900px] flex items-center justify-center"
+            }
           >
             <div
-              className="absolute bg-black overflow-hidden"
-              style={
-                fullscreen
-                  ? { inset: 0 }
-                  : {
-                      top: "5.7%",
-                      right: "4.7%",
-                      bottom: "4.5%",
-                      left: "3.4%",
-                      borderRadius: "12px",
-                    }
-              }
+              className={fullscreen ? "w-full h-full" : "relative w-full"}
+              style={fullscreen ? {} : { aspectRatio: "1379/985" }}
             >
-              <div className="absolute inset-0">
-                <VideoPlayer
-                  ref={playerRef}
-                  thumbnail={program?.video.thumbnail ?? null}
-                  fullscreen={fullscreen}
-                  visible={!staticActive}
-                  muted={muted}
-                  volume={volume}
-                  onEnded={handleEnded}
-                  onPlaying={handlePlaying}
+              <div
+                className="absolute bg-black overflow-hidden"
+                style={
+                  fullscreen
+                    ? { inset: 0 }
+                    : {
+                        top: "5.7%",
+                        right: "4.7%",
+                        bottom: "4.5%",
+                        left: "3.4%",
+                        borderRadius: "12px",
+                      }
+                }
+              >
+                <div className="absolute inset-0">
+                  <VideoPlayer
+                    ref={playerRef}
+                    thumbnail={program?.video.thumbnail ?? null}
+                    fullscreen={fullscreen}
+                    visible={!staticActive}
+                    muted={muted}
+                    volume={volume}
+                    onEnded={handleEnded}
+                    onPlaying={handlePlaying}
+                  />
+
+                  {showVolumeOsd && (
+                    <div className="absolute bottom-6 left-6 z-40 font-mono drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]">
+                      <div className="text-sm tracking-widest text-green-400/80 mb-1.5">VOLUME</div>
+                      <div className="flex gap-[8px]">
+                        {muted ? (
+                          <div className="text-base tracking-widest text-green-400/60">MUTE</div>
+                        ) : (
+                          Array.from({ length: 10 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="w-[12px] h-12 rounded-[3px]"
+                              style={{
+                                backgroundColor: i < Math.round(volume * 10) ? "#4ade80" : "#1a3a1a",
+                                boxShadow:
+                                  i < Math.round(volume * 10)
+                                    ? "0 0 8px rgba(74,222,128,0.6)"
+                                    : "none",
+                              }}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <StaticNoise visible={staticActive} />
+
+                <VhsTexture />
+
+                <ChannelOverlay
+                  channel={selectedChannel + 1}
+                  visible={fullscreen ? true : !guideOpen}
+                  subreddit={program?.video.subreddit}
+                  pendingDigits={pendingDigit}
+                  totalChannels={NUM_CHANNELS}
                 />
+
+                {guideOpen && (
+                  <TvGuide
+                    channels={guideChannels}
+                    currentChannel={selectedChannel}
+                    onSelect={selectChannel}
+                    onClose={() => setGuideOpen(false)}
+                  />
+                )}
+
+                {!launched && (
+                  <div className="absolute inset-0 z-40 w-full h-full bg-black flex flex-col items-center justify-center gap-6 overflow-hidden">
+                    <div className="absolute inset-0 opacity-10" style={{ background: `url('${withBase("/bg2.png")}') center/cover no-repeat` }} />
+                    <div className="relative z-10 flex flex-col items-center gap-5 max-w-sm px-5 text-center">
+                      <div className="text-green-500/60 font-mono text-[10px] tracking-[0.3em] animate-pulse">
+                        ● BROADCAST INITIALIZING ●
+                      </div>
+                      <h1 className="text-green-400 text-2xl font-mono tracking-wide leading-tight">
+                        INTERDIMENSIONAL<br />CABLE
+                      </h1>
+                      <div className="h-px w-24 bg-green-800/50" />
+                      <p className="text-green-300/70 font-mono text-xs leading-relaxed">
+                        You have tuned into a television signal from an adjacent dimension. Our
+                        programming consists entirely of AI-generated videos scraped from
+                        Reddit. We are not responsible for any existential dread, temporal
+                        displacement, or spontaneous third-eye activation.
+                      </p>
+                      <div className="text-green-500/40 font-mono text-[10px] leading-relaxed">
+                        No subscription required. No refunds possible.<br />
+                        The signal finds <em>you</em>.
+                      </div>
+                      <button
+                        onClick={() => setLaunched(true)}
+                        className="mt-2 px-6 py-2 bg-green-900/40 border border-green-500/50 text-green-400 font-mono text-sm tracking-widest hover:bg-green-800/50 hover:border-green-400/70 active:scale-95 transition-all rounded cursor-pointer"
+                      >
+                        ▶ START BROADCAST
+                      </button>
+                      <div className="text-green-600/30 font-mono text-[10px] tracking-wider">
+                        PRESS ANY KEY OR CLICK
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <StaticNoise visible={staticActive} />
-
-              <VhsTexture />
-
-              <ChannelOverlay
-                channel={selectedChannel + 1}
-                visible={fullscreen ? true : !guideOpen}
-                subreddit={program?.video.subreddit}
-                pendingDigits={pendingDigit}
-              />
-
-              {guideOpen && (
-                <TvGuide
-                  channels={guideChannels}
-                  currentChannel={selectedChannel}
-                  onSelect={selectChannel}
-                  onClose={() => setGuideOpen(false)}
+              {!fullscreen && (
+                <img
+                  src={withBase("/tv-frame.png")}
+                  alt=""
+                  className="absolute inset-0 w-full h-full pointer-events-none select-none"
+                  style={{
+                    objectFit: "contain",
+                    zIndex: 50,
+                    borderRadius: "12px",
+                    border: "2px solid #333",
+                  }}
                 />
               )}
-
-              {showVolumeOsd && !fullscreen && (
-                <div className="absolute bottom-12 left-12 z-30 font-mono drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]">
-                  <div className="text-sm tracking-widest text-green-400/80 mb-1.5">VOLUME</div>
-                  <div className="flex gap-[8px]">
-                    {muted ? (
-                      <div className="text-base tracking-widest text-green-400/60">MUTE</div>
-                    ) : (
-                      Array.from({ length: 10 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-[12px] h-12 rounded-[3px]"
-                          style={{
-                            backgroundColor: i < Math.round(volume * 10) ? "#4ade80" : "#1a3a1a",
-                            boxShadow:
-                              i < Math.round(volume * 10)
-                                ? "0 0 8px rgba(74,222,128,0.6)"
-                                : "none",
-                          }}
-                        />
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-
             </div>
-
-            {!fullscreen && (
-              <img
-                src={withBase("/tv-frame.png")}
-                alt=""
-                className="absolute inset-0 w-full h-full pointer-events-none select-none"
-                style={{
-                  objectFit: "contain",
-                  zIndex: 50,
-                  borderRadius: "12px",
-                  border: "2px solid #333",
-                }}
-              />
-            )}
           </div>
         </div>
-      </div>
 
-      {!fullscreen && (
-        <div className="mt-8 lg:mt-0 lg:absolute lg:right-10 lg:bottom-10 z-20 self-center lg:self-auto pb-8 lg:pb-0">
-          <RemoteControl
-            onNumberPress={handleNumberPress}
-            onChannelUp={() => changeChannel(1)}
-            onChannelDown={() => changeChannel(-1)}
-            onVolumeUp={() => setVolume((v) => Math.min(1, v + 0.1))}
-            onVolumeDown={() => setVolume((v) => Math.max(0, v - 0.1))}
-            onMuteToggle={() => setMuted((m) => !m)}
-            onGuidePress={() => setGuideOpen((v) => !v)}
-            onEnterPress={() => setFullscreen((f) => !f)}
-            isMuted={muted}
-          />
-        </div>
-      )}
+        {!fullscreen && (
+          <div className="mt-8 lg:mt-0 lg:absolute lg:right-10 lg:bottom-10 z-20 self-center lg:self-auto pb-8 lg:pb-0">
+            <RemoteControl
+              onNumberPress={handleNumberPress}
+              onChannelUp={() => changeChannel(1)}
+              onChannelDown={() => changeChannel(-1)}
+              onVolumeUp={() => setVolume((v) => Math.min(1, v + 0.1))}
+              onVolumeDown={() => setVolume((v) => Math.max(0, v - 0.1))}
+              onMuteToggle={() => setMuted((m) => !m)}
+              onGuidePress={() => setGuideOpen((v) => !v)}
+              onEnterPress={() => setFullscreen((f) => !f)}
+              isMuted={muted}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

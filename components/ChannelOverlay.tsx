@@ -5,6 +5,7 @@ interface ChannelOverlayProps {
   visible: boolean;
   subreddit?: string;
   pendingDigits?: string | null;
+  totalChannels: number;
 }
 
 export default function ChannelOverlay({
@@ -12,6 +13,7 @@ export default function ChannelOverlay({
   visible,
   subreddit,
   pendingDigits,
+  totalChannels,
 }: ChannelOverlayProps) {
   if (!visible) return null;
 
@@ -24,7 +26,7 @@ export default function ChannelOverlay({
 
       {!pendingDigits && subreddit && (
         <div className="text-xs mt-1 opacity-60">
-          {channel === 1 ? `BEST OF` : `r/${subreddit}`}
+          {channel === totalChannels ? `BEST OF` : `r/${subreddit}`}
         </div>
       )}
     </div>
