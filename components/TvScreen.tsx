@@ -44,6 +44,7 @@ export default function TvScreen() {
   const [lastBuildDate, setLastBuildDate] = useState("");
   const [showVolumeOsd, setShowVolumeOsd] = useState(false);
   const [pendingDigit, setPendingDigit] = useState<string | null>(null);
+  const [launched, setLaunched] = useState(false);
 
   const playerRef = useRef<VideoPlayerHandle | null>(null);
   const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -387,6 +388,42 @@ export default function TvScreen() {
     );
   }
 
+  if (!launched) {
+    return (
+      <div className="w-full h-screen bg-black flex flex-col items-center justify-center gap-8 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10" style={{ background: `url('${withBase("/bg2.png")}') center/cover no-repeat` }} />
+        <div className="relative z-10 flex flex-col items-center gap-6 max-w-md px-6 text-center">
+          <div className="text-green-500/60 font-mono text-xs tracking-[0.3em] animate-pulse">
+            ● BROADCAST INITIALIZING ●
+          </div>
+          <h1 className="text-green-400 text-3xl font-mono tracking-wide leading-tight">
+            INTERDIMENSIONAL<br />CABLE
+          </h1>
+          <div className="h-px w-32 bg-green-800/50" />
+          <p className="text-green-300/70 font-mono text-sm leading-relaxed">
+            You have tuned into a television signal from an adjacent dimension. Our
+            programming consists entirely of AI-generated videos scraped from
+            Reddit. We are not responsible for any existential dread, temporal
+            displacement, or spontaneous third-eye activation.
+          </p>
+          <div className="text-green-500/40 font-mono text-xs leading-relaxed">
+            No subscription required. No refunds possible.<br />
+            The signal finds <em>you</em>.
+          </div>
+          <button
+            onClick={() => setLaunched(true)}
+            className="mt-4 px-8 py-3 bg-green-900/40 border border-green-500/50 text-green-400 font-mono text-lg tracking-widest hover:bg-green-800/50 hover:border-green-400/70 active:scale-95 transition-all rounded cursor-pointer"
+          >
+            ▶ START BROADCAST
+          </button>
+          <div className="text-green-600/30 font-mono text-[10px] tracking-wider">
+            PRESS ANY KEY OR CLICK
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const program = currentProgram;
 
   const guideChannels = Array.from({ length: NUM_CHANNELS }, (_, i) => {
@@ -469,14 +506,14 @@ export default function TvScreen() {
               {showVolumeOsd && !fullscreen && (
                 <div className="absolute bottom-12 left-12 z-30 font-mono drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]">
                   <div className="text-sm tracking-widest text-green-400/80 mb-1.5">VOLUME</div>
-                  <div className="flex gap-[3px]">
+                  <div className="flex gap-[8px]">
                     {muted ? (
                       <div className="text-base tracking-widest text-green-400/60">MUTE</div>
                     ) : (
                       Array.from({ length: 10 }).map((_, i) => (
                         <div
                           key={i}
-                          className="w-[6px] h-8 rounded-[2px]"
+                          className="w-[12px] h-12 rounded-[3px]"
                           style={{
                             backgroundColor: i < Math.round(volume * 10) ? "#4ade80" : "#1a3a1a",
                             boxShadow:
