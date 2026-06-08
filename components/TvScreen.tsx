@@ -473,8 +473,8 @@ export default function TvScreen() {
                     onPlaying={handlePlaying}
                   />
 
-                  {showVolumeOsd && (
-                    <div className="absolute bottom-6 left-6 z-40 font-mono drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]">
+                  {(showVolumeOsd || muted) && (
+                    <div className="absolute bottom-10 left-20 z-40 font-mono drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]">
                       <div className="text-sm tracking-widest text-green-400/80 mb-1.5">VOLUME</div>
                       <div className="flex gap-[8px]">
                         {muted ? (
